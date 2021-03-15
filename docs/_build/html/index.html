@@ -1,0 +1,378 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to Buildings classification’s documentation! &#8212; Buildings classification  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/functions.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-buildings-classification-s-documentation">
+<h1>Welcome to Buildings classification’s documentation!<a class="headerlink" href="#welcome-to-buildings-classification-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>This project’s aim is to classify buildings based on facades images (usually from google maps). Examples of classes
+we want to predict are: house, apartment, industrial, office building, church, retail.</p>
+<p>This is a stretch ambition project, and it is inspired by:</p>
+<p>1. the struggle of KYC analysts who, among other things, often have to check on google maps the address of companies to
+verify if the building ‘makes sense’ (e.g. is the customer registered as an industrial activity but the address correspond to
+a private house or apartment?)</p>
+<p>2. this <a class="reference external" href="https://www.researchgate.net/publication/322168840_Building_Instance_Classification_Using_Street_View_Images">paper</a> where CNN
+are used to predict classes of buildings from Google street images.</p>
+<p>To train the models I used the same dataset used in the paper: download the data at this <a class="reference external" href="https://www.researchgate.net/deref/http%3A%2F%2Fwww.sipeo.bgu.tum.de%2Fdownloads%2FBIC_GSV.tar.gz">link</a>.
+The code used to extract the data, run and evaluate the model and generate prediction is in the codebase (<em>building_classification_package</em>).
+I used a notebook to run the code and analyze the results, which you can find in the <em>notebooks</em> folder.</p>
+<p>Find in the attached powerpoint details about data, models and results.</p>
+<div class="section" id="note-on-the-models">
+<h2>Note on the Models<a class="headerlink" href="#note-on-the-models" title="Permalink to this headline">¶</a></h2>
+<p>I developed two different CNN models:</p>
+<ol class="arabic simple">
+<li><p>a simple CNN model which I built from scratch (with keras) with 2 convolution blocks</p></li>
+<li><p>a model based on a pre-trained VGG16 network provided by Keras (transfer learning).</p></li>
+</ol>
+<p>Both models can be modified from the <em>config</em> file in the codebase, or a different
+base model (e.g. inception, or VGG19) can be used for transfer learning. Note that if you want to use a different
+base model, you should probably adjust the data preprocessing accordingly. At the moment the data preprocessing is performed
+using the preprocessing function used for VGG (provided by Keras). This setting can be changed in the <em>config</em> file.</p>
+</div>
+<div class="section" id="note-for-usage-on-dap">
+<h2>Note for usage on DAP<a class="headerlink" href="#note-for-usage-on-dap" title="Permalink to this headline">¶</a></h2>
+<p>The package is made so it is possible to run it either locally on your laptop or on DAP. For training the model, it is
+recommended to have GPUs so better to run on DAP. However, as on DAP you are not connected to the internet, you cannot
+download the pre-trained VGG model while running. Locally, running the import statement for VGG is enough, but on DAP
+I manually loaded a pickle file containing the model which I had previously imported locally.</p>
+<p>On DAP you can use the venv I created for this project (<em>image_classification</em>), or create your own using the requirements.txt file.</p>
+<p>Modify the <em>SYSTEM_CONFIG</em> settings in the <em>config</em> file
+to run on DAP: set ‘on_dap’ to True, and add the path to the pickle file of the pre-downloaded VGG model.</p>
+</div>
+</div>
+<div class="section" id="codebase">
+<h1>Codebase<a class="headerlink" href="#codebase" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="config">
+<h2>Config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-building_classification_package.config"></span><dl class="py class">
+<dt id="building_classification_package.config.SimpleCnnModel">
+<em class="property">class </em><code class="sig-prename descclassname">building_classification_package.config.</code><code class="sig-name descname">SimpleCnnModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_classes</span></em><span class="sig-paren">)</span><a class="headerlink" href="#building_classification_package.config.SimpleCnnModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>I instanciate a simple cnn model as a submodel of the tf keras class. see:
+<a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/keras/Model">https://www.tensorflow.org/api_docs/python/tf/keras/Model</a>
+to make it work I have to make sure the layers I am using are of the tf.keras.layers kind, not keras API kind.</p>
+<dl class="py method">
+<dt id="building_classification_package.config.SimpleCnnModel.call">
+<code class="sig-name descname">call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#building_classification_package.config.SimpleCnnModel.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls the model on new inputs.</p>
+<p>In this case <cite>call</cite> just reapplies
+all ops in the graph to the new inputs
+(e.g. build a new computational graph from the provided inputs).</p>
+<dl>
+<dt>Arguments:</dt><dd><p>inputs: A tensor or list of tensors.
+training: Boolean or boolean scalar tensor, indicating whether to run</p>
+<blockquote>
+<div><p>the <cite>Network</cite> in training mode or inference mode.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>mask: A mask or list of masks. A mask can be</dt><dd><p>either a tensor or None (no mask).</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>A tensor if there is a single output, or
+a list of tensors if there are more than one outputs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="building_classification_package.config.extend_pretrained_model">
+<code class="sig-prename descclassname">building_classification_package.config.</code><code class="sig-name descname">extend_pretrained_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">base_model</span><span class="p">:</span> <span class="n">keras.engine.training.Model</span></em>, <em class="sig-param"><span class="n">data_config</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">n_freezed_layers</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; keras.engine.training.Model<a class="headerlink" href="#building_classification_package.config.extend_pretrained_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to create a model with a pre-trained base model (e.g. VGG16). Here I could not use the tf.keras Model
+subclass method because it doesn’t work with pre-trained net.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_model</strong> – pre-trained keras model instance. e.g. VGG16</p></li>
+<li><p><strong>data_config</strong> – dict containing data configuration</p></li>
+<li><p><strong>n_freezed_layers</strong> – number of layers to freeze. if None, by default if freezes all the base model layers</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a keras model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="building_classification_package.config.load_base_model">
+<code class="sig-prename descclassname">building_classification_package.config.</code><code class="sig-name descname">load_base_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">system_config</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">{'model_pickle_path': '/opt/app-root/projects/Building_classification/buildings_classification/model_pickles/base_model_vgg256.pickle', 'on_dap': False}</span></em><span class="sig-paren">)</span> &#x2192; keras.engine.training.Model<a class="headerlink" href="#building_classification_package.config.load_base_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calls the base model. I had to make this function because the base model is obtained differently
+if I am on DAP or not. DAP doesn’t have access to internet so we cannot download the weights of VGG16, so a
+pickle must be saved beforehand.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>system_config</strong> – dict of system configuration</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the base model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="building_classification_package.config.load_model">
+<code class="sig-prename descclassname">building_classification_package.config.</code><code class="sig-name descname">load_model</code><span class="sig-paren">(</span><em class="sig-param">model_config: dict, data_config: dict = {'classes': ['apartment', 'house', 'industrial', 'retail', 'officebuilding'], 'preprocessing_fuction': &lt;function keras_modules_injection.&lt;locals&gt;.wrapper&gt;, 'resize_img': False}, system_config: dict = {'model_pickle_path': '/opt/app-root/projects/Building_classification/buildings_classification/model_pickles/base_model_vgg256.pickle', 'on_dap': False}</em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span>tensorflow.python.keras.engine.training.Model<span class="p">, </span>keras.engine.training.Model<span class="p">]</span><a class="headerlink" href="#building_classification_package.config.load_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is needed because if I just declare the models (input of ‘return’ here) in the model_config dict
+and then call them from the train function, it doesn’t work. I tried to debug this and I don’t really get it, but
+it seems is it because I have to ‘run’ the model in the same function, cannot call the object from some other
+location?</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_config</strong> – dict of model config</p></li>
+<li><p><strong>data_config</strong> – dict of data config</p></li>
+<li><p><strong>system_config</strong> – dict of system config</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the model object</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="model-utils">
+<h2>Model Utils<a class="headerlink" href="#model-utils" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-building_classification_package.model_utils"></span><dl class="py function">
+<dt id="building_classification_package.model_utils.evaluate_model">
+<code class="sig-prename descclassname">building_classification_package.model_utils.</code><code class="sig-name descname">evaluate_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val_data</span><span class="p">:</span> <span class="n">keras.preprocessing.image.DirectoryIterator</span></em>, <em class="sig-param"><span class="n">model_config</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#building_classification_package.model_utils.evaluate_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate the model on a chosen dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>val_data</strong> – iterator of data to use to evaluate the model</p></li>
+<li><p><strong>model_config</strong> – dict of model configuration</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>array containing loss and accuracy of the model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="building_classification_package.model_utils.load_trained_and_compiled_model">
+<code class="sig-prename descclassname">building_classification_package.model_utils.</code><code class="sig-name descname">load_trained_and_compiled_model</code><span class="sig-paren">(</span><em class="sig-param">model_config: dict, data_config: dict = {'classes': ['apartment', 'house', 'industrial', 'retail', 'officebuilding'], 'preprocessing_fuction': &lt;function keras_modules_injection.&lt;locals&gt;.wrapper&gt;, 'resize_img': False}, system_config: dict = {'model_pickle_path': '/opt/app-root/projects/Building_classification/buildings_classification/model_pickles/base_model_vgg256.pickle', 'on_dap': False}</em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span>tensorflow.python.keras.engine.training.Model<span class="p">, </span>keras.engine.training.Model<span class="p">]</span><a class="headerlink" href="#building_classification_package.model_utils.load_trained_and_compiled_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the architecture and weights of a trained model. Needed to do this step because the direct load_model functions
+from keras didn’t work for me</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_config</strong> – dict with model configurations</p></li>
+<li><p><strong>data_config</strong> – dict with data configurations</p></li>
+<li><p><strong>system_config</strong> – dict with system configurations</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>trained model object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="building_classification_package.model_utils.model_predict">
+<code class="sig-prename descclassname">building_classification_package.model_utils.</code><code class="sig-name descname">model_predict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_config</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">keras.preprocessing.image.DirectoryIterator</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#building_classification_package.model_utils.model_predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict data based on the model stored in model config</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_config</strong> – dict of model configuration</p></li>
+<li><p><strong>data</strong> – data to generate predictions of</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>array of prediction</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="building_classification_package.model_utils.train_model">
+<code class="sig-prename descclassname">building_classification_package.model_utils.</code><code class="sig-name descname">train_model</code><span class="sig-paren">(</span><em class="sig-param">train_data: keras.preprocessing.image.DirectoryIterator, val_data: keras.preprocessing.image.DirectoryIterator, model_config: dict, data_config: dict = {'classes': ['apartment', 'house', 'industrial', 'retail', 'officebuilding'], 'preprocessing_fuction': &lt;function keras_modules_injection.&lt;locals&gt;.wrapper&gt;, 'resize_img': False}, system_config: dict = {'model_pickle_path': '/opt/app-root/projects/Building_classification/buildings_classification/model_pickles/base_model_vgg256.pickle', 'on_dap': False}</em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span>tensorflow.python.keras.engine.training.Model<span class="p">, </span>keras.engine.training.Model<span class="p">]</span><a class="headerlink" href="#building_classification_package.model_utils.train_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train the model. Which model to train, which loss, optimizer to use and callbacks are defined in model_config.
+The model weights are saved in a file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train_data</strong> – iterator of training data, divided in one folder for each class</p></li>
+<li><p><strong>val_data</strong> – iterator of validation data, divided in one folder for each class. None if we don’t want to</p></li>
+</ul>
+</dd>
+</dl>
+<p>validate during training (but for example use evaluate_model function later)
+:param model_config: dict of configuration for the model, including model object, optimizer, loss, metrics,
+callbacks, path to file where to save weights.
+:param data_config
+:param system_config
+:return: trained model</p>
+</dd></dl>
+
+<p>Data Utils
+—</p>
+<span class="target" id="module-building_classification_package.data_utils"></span><dl class="py function">
+<dt id="building_classification_package.data_utils.build_dataset">
+<code class="sig-prename descclassname">building_classification_package.data_utils.</code><code class="sig-name descname">build_dataset</code><span class="sig-paren">(</span><em class="sig-param">set_to_build: str, dataset_path: str, validation_split: float = 0.0, data_config: dict = {'classes': ['apartment', 'house', 'industrial', 'retail', 'officebuilding'], 'preprocessing_fuction': &lt;function keras_modules_injection.&lt;locals&gt;.wrapper&gt;, 'resize_img': False}, seed: int = 42, **augmentation_params</em><span class="sig-paren">)</span> &#x2192; keras.preprocessing.image.DirectoryIterator<a class="headerlink" href="#building_classification_package.data_utils.build_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds the set we need (train, validation or test). the sets are iterator, and the starting point are images
+split in a folder for each class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>set_to_build</strong> – ‘train’, ‘val’ or ‘test’</p></li>
+<li><p><strong>dataset_path</strong> – path to data</p></li>
+<li><p><strong>validation_split</strong> – if we are building training or validation, specify the split. default is 0.0 so it works</p></li>
+</ul>
+</dd>
+</dl>
+<p>for building test set
+:param data_config: dict of configuration for data, such as classes to use, preprocessing_function, resize
+:param seed: random seed
+:param augmentation_params: if we want to perform data augmentation, specify params here
+:return: iterator for the desired set</p>
+</dd></dl>
+
+<p>Callbacks
+—</p>
+<span class="target" id="module-building_classification_package.callbacks"></span><dl class="py class">
+<dt id="building_classification_package.callbacks.PlotLearning">
+<em class="property">class </em><code class="sig-prename descclassname">building_classification_package.callbacks.</code><code class="sig-name descname">PlotLearning</code><a class="headerlink" href="#building_classification_package.callbacks.PlotLearning" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="building_classification_package.callbacks.PlotLearning.on_epoch_end">
+<code class="sig-name descname">on_epoch_end</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">epoch</span></em>, <em class="sig-param"><span class="n">logs</span><span class="o">=</span><span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="headerlink" href="#building_classification_package.callbacks.PlotLearning.on_epoch_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called at the end of an epoch.</p>
+<p>Subclasses should override for any actions to run. This function should only
+be called during train mode.</p>
+<dl>
+<dt># Arguments</dt><dd><p>epoch: integer, index of epoch.
+logs: dict, metric results for this training epoch, and for the</p>
+<blockquote>
+<div><p>validation epoch if validation is performed. Validation result keys
+are prefixed with <cite>val_</cite>.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="building_classification_package.callbacks.PlotLearning.on_train_begin">
+<code class="sig-name descname">on_train_begin</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">logs</span><span class="o">=</span><span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="headerlink" href="#building_classification_package.callbacks.PlotLearning.on_train_begin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called at the beginning of training.</p>
+<p>Subclasses should override for any actions to run.</p>
+<dl class="simple">
+<dt># Arguments</dt><dd><dl class="simple">
+<dt>logs: dict, currently no data is passed to this argument for this method</dt><dd><p>but that may change in the future.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">Buildings classification</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Sara Carozza.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
